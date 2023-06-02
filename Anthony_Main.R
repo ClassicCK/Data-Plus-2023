@@ -1,23 +1,36 @@
 library(readr)
 
-variables <- read.csv("Data/20181214_meta_trmB_all.csv")
+variables <- read.csv("Data/20181214_meta_trmB_all.csv") #Data about the conditions of each run
 
-data <- read.csv("Data/20181214_trmB_all_data.csv")
+data <- read.csv("Data/allDataCompatible.csv") #Data about the OD of each run
+
+# Convert the "Time" a duration object, because values go beyond 24 hours 
+data$Time <- as.numeric(hms(data$Time))
+
+
+blank <- variables %>% filter(variables$strain == "blank") #Seperates the runs by strain
+HV35 <-variables %>% filter(variables$strain == "HV35")
+HV187 <-variables %>% filter(variables$strain == "HV187")
+HV208 <-variables %>% filter(variables$strain == "HV208")
+HV284 <-variables %>% filter(variables$strain == "HV284")
+HV285 <-variables %>% filter(variables$strain == "HV285")
+HV286 <-variables %>% filter(variables$strain == "HV286")
+HV287 <-variables %>% filter(variables$strain == "HV287")
+HV289 <-variables %>% filter(variables$strain == "HV289")
+HV290 <-variables %>% filter(variables$strain == "HV290")
+
+strains <- list(blank,HV35,HV187,HV208,HV284,HV285,HV286,HV287,HV289,HV290) #List of all strains
+
+
+for (strain in strains){ #For each strain:
+  runsOfStrain <- data.frame(data$Time) #Create a new dataframe with the Time column
+
+  for(run in strain$variable){ #For each numbered run of that strain:
+    runData <-data[, (as.integer(run)+2)] 
+    runsOfStrain <- cbind(runsOfStrain,runData) #Appends that numbered run from the data
+    colnames(runsOfStrain)[colnames(runsOfStrain) == "runData"] = run #Renames the column
+
+  }
+
   
-  
-strain <- variables$strain
-
-blank <-c()
-HV35 <-c()
-HV187 <-c()
-HV208 <-c()
-HV284 <-c()
-HV285 <-c()
-HV286 <-c()
-HV287 <-c()
-HV289 <-c()
-HV290 <-c()
-
-for (i in length(strain)){
-  assign(strain[i],variables$variable[i])
 }
