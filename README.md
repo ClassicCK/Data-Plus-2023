@@ -37,7 +37,14 @@ The goal of this Data+ project is to apply and extend custom analytics solutions
 
 ## Weekly Goals and Agenda
 ### Week 1
-
+Aiden: 
+Set up GitHub and RStudio on computer - Completed
+Read and analyze papers - Completed 
+  Question - I am unsure why the AMiGA paper is an alternative model to B-Great.
+  After reading the paper it seems AMiGA still uses the GP regression models 
+  proposed in the Tonner paper but is just an easily accessible system that 
+  allows people inexperienced with programming to use.
+Test and experiment with ggplot themes - Completed
 ### Week 2
 
 ### Week 3
