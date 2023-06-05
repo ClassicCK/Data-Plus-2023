@@ -1,5 +1,10 @@
 library(readr)
 library(glue)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(readr)
 
 variables <- read.csv("Data/20181214_meta_trmB_all.csv") #Data about the conditions of each run
 
