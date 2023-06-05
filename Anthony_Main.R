@@ -15,6 +15,8 @@ data$Time <- as.numeric(hms(data$Time))
 
 
 
+
+
 blank <- variables %>% filter(variables$strain == "blank") #Seperates the runs by strain
 HV35 <-variables %>% filter(variables$strain == "HV35")
 HV187 <-variables %>% filter(variables$strain == "HV187")
@@ -45,6 +47,7 @@ for (i in 1:length(strains)){ #For each strain:
   
   runsOfStrain_long <- gather(runsOfStrain, key = "Strain", value = "OD", -data.Time)
   
+
   strainGraph <- ggplot(runsOfStrain_long, aes(x = data.Time, y = OD, color = Strain)) +
     geom_line() + 
     labs(x = "Time (Seconds)", y = "Optical Density", title = paste("Time series plot for strain: ",strainNames[i],sep="")) + theme_twoseventyeight
