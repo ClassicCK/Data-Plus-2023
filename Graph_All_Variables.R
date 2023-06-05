@@ -47,7 +47,7 @@ strainNames <- list("blank","HV35","HV187","HV208","HV284","HV285","HV286","HV28
 for (i in 1:length(strains)){ #For each strain:
   strain <- strains[[i]] #selects the strain from strains
   
-  print(strainNames[i]) #prints name for reference
+  print(strainNames[i]) #prints name for reference 
   
   strain$Variable <- as.factor(strain$Variable) #factors the Variable column soR does not create a bar graph 
   
