@@ -50,12 +50,15 @@ for (i in 1:length(strains)){ #For each strain:
   print(strainNames[i]) #prints name for reference 
   
   strain$Variable <- as.factor(strain$Variable) #factors the Variable column soR does not create a bar graph 
+  strain$techrep <- as.factor(strain$techrep)
+  strain$biorep <- as.factor(strain$biorep)
   
   colnames(strain)[1] = "Run" #Renames "Variable" to "Run"
   
   #Makes graph. Linetype is split by growth condition right now. Change "condition" to see other graphs
   strainGraph <- ggplot(strain, aes(x = Time, y = OD, color = Run, linetype = condition)) +
     geom_line() + 
+    facet_wrap(~biorep) +
     labs(x = "Time (Minutes)", y = "Optical Density", title = paste("Time series plot for strain: ",strainNames[i],sep="")) + theme_twoseventyeight
   
   #Saves graph.
