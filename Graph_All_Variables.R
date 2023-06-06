@@ -58,7 +58,7 @@ for (i in 1:length(strains)){ #For each strain:
   #Makes graph. Linetype is split by growth condition right now. Change "condition" to see other graphs
   strainGraph <- ggplot(strain, aes(x = Time, y = OD, color = Run, linetype = condition)) +
     geom_line() + 
-    facet_wrap(~biorep) +
+    facet_grid(rows = vars(biorep),cols=vars(techrep),switch='y',labeller = label_both) +
     labs(x = "Time (Minutes)", y = "Optical Density", title = paste("Time series plot for strain: ",strainNames[i],sep="")) + theme_twoseventyeight
   
   #Saves graph.
