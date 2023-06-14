@@ -5,6 +5,7 @@ library(dplyr)
 library(ggplot2)
 library(lubridate)
 library(readr)
+library(ggpubr)
 
 variables <- read.csv("Data/variableData.csv") #Data about the conditions of each run
 
@@ -55,20 +56,31 @@ for (i in 1:length(strains)){ #For each strain:
   
   colnames(strain)[1] = "Run" #Renames "Variable" to "Run"
   
-  strain$Time <- as.integer(strain$Time)
+  strain$Time <- as.integer(strain$Time)/(60*60) #Convert to Hours
+  #Convert to Hours
   
   #Makes graph. Linetype is split by growth condition right now. Change "condition" to see other graphs
   strainGraph <- ggplot(strain, aes(x = Time, y = OD, color = Run, linetype = condition)) +
     
     geom_point(size = 0.2) +
     
-    geom_smooth(
-      method = "nls", formula = y ~ SSfpl(log(x), A, B, xmid, scal),
-      se = FALSE
-    ) +
+    #geom_smooth(method = "glm", formula = as.formula(y~x), se = FALSE) + #linear
+    
+    #geom_smooth(method = "glm", formula = as.formula(y ~ exp(x)), se = FALSE) + #exponential
+    
+    #geom_smooth(method = "nls", formula = as.formula(y ~ a/(1+exp(b-c*x))), method.args = list(start = c(a = 1, b = 1, c = 1)), se = FALSE) + #logistic
+    
+    #geom_smooth(method = "nls", formula = as.formula(y ~ a*exp(-exp(b-c*x))), method.args = list(start = c(a = 1, b = 1, c = 1)), se = FALSE) + #gompertz
+    
+    #geom_smooth(method = "nls", formula = as.formula(y ~ a*(1+v*exp(k*(t-x)))^(-1/v)), method.args = list(start = c(a = 1, v = 1, k = 1, t=1)), se = FALSE) + #richards
+    
+    #geom_smooth(method = "nls", formula = as.formula(y ~ a*(1+exp(-(l+k*x)/p))^(-p)), method.args = list(start = c(a = 1, l = 1, k = 1, p=1)), se = FALSE) + #stannard
+    
+    
+    stat_regline_equation(label.y = 1, aes(label = ..rr.label..)) +
     
     facet_grid(rows = vars(biorep),cols=vars(techrep),switch='y',labeller = label_both) +
-    labs(x = "Time (Minutes)", y = "Optical Density", title = paste("Time series plot for strain: ",strainNames[i],sep="")) + theme_twoseventyeight
+    labs(x = "Time (Hours)", y = "Optical Density", title = paste("Time series plot for strain: ",strainNames[i],sep="")) + theme_twoseventyeight
   
   #Saves graph.
   ggsave(filename = paste("Figures/",strainNames[i],".png",sep=""),
