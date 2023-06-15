@@ -45,13 +45,14 @@ HV290 <-dataLong %>% filter(dataLong$strain == "HV290")
 strains <- list(HV35,HV187,HV208,HV284,HV285,HV286,HV287,HV289,HV290) #List of all strains
 strainNames <- list("HV35","HV187","HV208","HV284","HV285","HV286","HV287","HV289","HV290") #List of names
 
-#Defines equations of fit
+
 linear <- as.formula(OD~Time)
 exponential <- as.formula(OD~exp(Time))
 logistic <- as.formula(OD ~ a/(1+exp(b-c * Time)))
 gompertz <- as.formula(OD ~ a*exp(-exp(b-c*Time)))
 richards <- as.formula(OD ~ a*(1+v*exp(k*(t-Time)))^(-1/v))
 stannard <- as.formula(OD ~ a*(1+exp(-(l+k*Time)/p))^(-p))
+
 
 for (i in 1:length(strains)){ #For each strain:
   strain <- strains[[i]] #selects the strain from strains
@@ -67,39 +68,22 @@ for (i in 1:length(strains)){ #For each strain:
   strain$Time <- as.integer(strain$Time)/(60*60) #Convert to Hours
   #Convert to Hours
   
+ 
+  #model <- lm(formula = linear, data = strain)
   
-  #Makes a model based on the formulas above
-  model <- lm(formula = linear, data = strain)
   #model <- glm(formula = exponential, data = strain)
-  #model <- nls(formula = logistic, data = strain, start = list(a = 1, b = 1, c = 1))
-  #model <- nls(formula = gompertz, data = strain, start = list(a = 1, b = 1, c = 1))
+  
+  #model <- nls(formula = linear, data = strain, start = list(a = 1, b = 1, c = 1))
+  
+  model <- nls(formula = gompertz, data = strain, start = list(a = 1, b = 1, c = 1))
+  
   
   print(model)
-  
-  strain$Predicted <- predict(model) #Makes predictions based on the model
-  
-  #Makes graph. Linetype is split by growth condition right now. Change "condition" to see other graphs
-  
-  strainGraph <- ggplot(strain, aes(x = Time, y = OD, color = Run, linetype = condition)) +
-    
-    geom_point(size = 0.2) +
-    
-    geom_line(aes(y = Predicted), color = "blue") +
-    
-    stat_regline_equation(label.y = 1, aes(label = ..rr.label..)) +
-    
-    facet_grid(rows = vars(biorep),cols=vars(techrep),switch='y',labeller = label_both) +
-    labs(x = "Time (Hours)", y = "Optical Density", title = paste("Time series plot for strain: ",strainNames[i],sep="")) + theme_twoseventyeight
-  
-  
   
   r_squared <- summary(model)$r.squared
   
   print(r_squared)
   
-  #Saves graph.
-  ggsave(filename = paste("Figures/",strainNames[i],".png",sep=""),
-         plot = strainGraph, units = "px", width = 3200, height = 1800, dpi = 300)
   
 }
 

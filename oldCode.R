@@ -15,7 +15,7 @@ data$Column4 <- as.numeric(as.character(data[, 4]))
 co2 <- ggplot(data, aes(x = Time, y = Column4)) +
   geom_line() +
   labs(x = "Time (Seconds)", y = "Value", title = "Time Series Plot") +
-  theme_minimal()
+  theme_twoseventyeight
 
 # Save the plot
 ggsave(filename = "Figures/2.png",
