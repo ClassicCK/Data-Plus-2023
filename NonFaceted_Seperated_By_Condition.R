@@ -28,26 +28,9 @@ dataLong <- cbind(dataLong,toAppend) #Appends toAppend to dataLong to create a l
 dataLong <- dataLong[order(dataLong$Variable),] #orders by variable, probably unecesarry
 dataLong$Time <- as.numeric(dataLong$Time) #VERY NECESARRY 
 
-blank <- dataLong %>% filter(dataLong$strain == "blank") #Seperates the runs by strain, can't seem to do this with the for loop below somehow
-HV35 <-dataLong %>% filter(dataLong$strain == "HV35")
-HV187 <-dataLong %>% filter(dataLong$strain == "HV187")
-HV208 <-dataLong %>% filter(dataLong$strain == "HV208")
-HV284 <-dataLong %>% filter(dataLong$strain == "HV284")
-HV285 <-dataLong %>% filter(dataLong$strain == "HV285")
-HV286 <-dataLong %>% filter(dataLong$strain == "HV286")
-HV287 <-dataLong %>% filter(dataLong$strain == "HV287")
-HV289 <-dataLong %>% filter(dataLong$strain == "HV289")
-HV290 <-dataLong %>% filter(dataLong$strain == "HV290")
-
-#for(strain in strainNames){
-#  print(strain)
-#  strainData <- dataLong %>% filter(dataLong$strain == strain)
-#  print(strainData)
-#}
-
-strains <- list(HV35,HV187,HV208,HV284,HV285,HV286,HV287,HV289,HV290) #List of all strains
-strainNames <- list("HV35","HV187","HV208","HV284","HV285","HV286","HV287","HV289","HV290") #List of names
+strains <- list("HV35","HV187","HV208","HV284","HV285","HV286","HV287","HV289","HV290") #List of names
 conditions <- list("no glu01","glu01")
+models <- list("Linear","Exponential","Logistic","Gompertz","Richards","Stannard")
 
 #Defines equations of fit
 linear <- as.formula(OD~Time)
@@ -57,15 +40,27 @@ gompertz <- as.formula(OD ~ a*exp(-exp(b-c*Time)))
 richards <- as.formula(OD ~ a*(1+v*exp(k*(t-Time)))^(-1/v))
 stannard <- as.formula(OD ~ a*(1+exp(-(l+k*Time)/p))^(-p))
 
-for (i in 1:length(strains)){ #For each strain:
+r_squareds <- data.frame(c(0))
+
+k <- 1
+for (i in strains){
+  for(j in conditions){
+      r_squareds <- rbind(r_squareds,data.frame(c(0)))
+      rownames(r_squareds)[k] = paste(i," with ", j, sep="")
+      k <- k+1
+  }
+}
+
+r2 <- c()
+for (i in strains){ #For each strain:
+  strain_unfiltered <- dataLong %>% filter(dataLong$strain == i)
+  
   for(j in conditions){
     
     print(j)
-    strain <- strains[[i]] %>% filter(strains[[i]]$condition == j) #selects the strain from strains
+    strain <- strain_unfiltered %>% filter(strain_unfiltered$condition == j) #selects the strain from strains
     
-    print(strain)
-    
-    print(strainNames[i]) #prints name for reference 
+    print(i) #prints name for reference 
     
     strain$Variable <- as.factor(strain$Variable) #factors the Variable column soR does not create a bar graph 
     strain$techrep <- as.factor(strain$techrep)
@@ -77,11 +72,12 @@ for (i in 1:length(strains)){ #For each strain:
     #Convert to Hours
     
     
-    #Makes a model based on the formulas above
-    model <- lm(formula = linear, data = strain)
+    #Makes a model based on the formulas above:
+    
+    #model <- lm(formula = linear, data = strain)
     #model <- glm(formula = exponential, data = strain)
     #model <- nls(formula = logistic, data = strain, start = list(a = 1, b = 1, c = 1))
-    #model <- nls(formula = gompertz, data = strain, start = list(a = 1, b = 1, c = 1))
+    model <- nls(formula = gompertz, data = strain, start = list(a = 1, b = 1, c = 1))
     
     print(model)
     
@@ -90,25 +86,36 @@ for (i in 1:length(strains)){ #For each strain:
     #Makes graph. Linetype is split by growth condition right now. Change "condition" to see other graphs
     
     strainGraph <- ggplot(strain, aes(x = Time, y = OD, color = Run, linetype = condition)) +
-      
-    geom_point(size = 0.2) +
+      geom_point(size = 0.2) +
+      geom_line(aes(y = Predicted), color = "blue") +
+      stat_regline_equation(label.y = 1, aes(label = ..rr.label..)) +
+      #facet_grid(rows = vars(biorep),cols=vars(techrep),switch='y',labeller = label_both) +
+      labs(x = "Time (Hours)", y = "Optical Density", title = paste("Time series plot for strain: ",strainNames[i], " with ", j, sep="")) + theme_twoseventyeight
     
-    geom_line(aes(y = Predicted), color = "blue") +
-    
-    stat_regline_equation(label.y = 1, aes(label = ..rr.label..)) +
-    
-    #facet_grid(rows = vars(biorep),cols=vars(techrep),switch='y',labeller = label_both) +
-    labs(x = "Time (Hours)", y = "Optical Density", title = paste("Time series plot for strain: ",strainNames[i],sep="")) + theme_twoseventyeight
-  
-    r_squared <- summary(model)$r.squared
-    
+    strain$y_pred <- predict(model)
+    # Calculate the residuals
+    strain$residuals <- strain$OD - strain$y_pred
+    # Calculate the residual sum of squares (RSS)
+    rss <- sum(strain$residuals^2)
+    # Calculate the total sum of squares (TSS)
+    tss <- sum((strain$OD - mean(strain$OD))^2)
+    # Calculate R-squared
+    r_squared <- 1 - (rss / tss)
+    # Print the R-squared value
     print(r_squared)
     
+    r2 <- append(r2,r_squared)
+    
+    
+    
     #Saves graph.
-    ggsave(filename = paste("Figures/",strainNames[i]," with ", j, ".png",sep=""),
+    ggsave(filename = paste("Figures/",i," with ", j, ".png",sep=""),
            plot = strainGraph, units = "px", width = 3200, height = 1800, dpi = 300)
   }
 }
+r2 <- append(r2,0)
+r_squareds <- cbind(r_squareds,r2)
+colnames(r_squareds)[5] = "Gompertz"
 
 
 
