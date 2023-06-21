@@ -39,7 +39,7 @@ print(strain_names)
 
 
 modelList <- list(
-  ng = 100,  # number of MCMC generations
+  ng = 10,  # number of MCMC generations
   burnin = 5,  # burn-in period
   typeNames = rep("DA", length(strain_names)),  # model type for each response variable
   REDUCT = FALSE  # dimension reduction parameters
@@ -58,12 +58,36 @@ xData <- cbind(Time = as.numeric(data_wide$Time),
 # Convert xData to a matrix
 xData <- as.matrix(xData)
 
+set.seed(111)
+
+train_index <- sample(1:nrow(xData), size = 0.7 * nrow(xData))
+
+# Split the data into training and testing sets
+xtrain <- xData[train_index, ]
+xtest <- xData[-train_index, ]
+
+ytrain <- yData[train_index, ]
+ytest <- yData[-train_index, ]
 
 
 formula <- as.formula( ~ Time + condition + Run)
 
+xtrain <- as.data.frame(xtrain)
+xtest <- as.data.frame(xtest)
+
+complete_rows <- complete.cases(xtrain)
+complete_rowsT <- complete.cases(xtest)
+
+
+# Subset both xtrain and ytrain using this vector
+xtrain <- xtrain[complete_rows, ]
+ytrain <- ytrain[complete_rows, ]
+
+xtest <- xtest[complete_rowsT, ]
+ytest <- ytest[complete_rowsT, ]
+
 # Apply GJAM
-gjamFit <- gjam(formula, xdata = xData, ydata = yData, modelList = modelList)
+gjamFit <- gjam(formula, xdata = xtrain, ydata = ytrain, modelList = modelList)
 
 # Check the result
 print(summary(gjamFit))
@@ -75,8 +99,7 @@ gjamPlot(output = gjamFit, plotPars = list(GRIDPLOTS = TRUE))
 
 
 
-
-newdata <- list(xdata = xData, nsim = 200)
+newdata <- list(xdata = xtest, nsim = 200)
 predictions <- gjamPredict(gjamFit, newdata = newdata)
 
 # Base ggplot
