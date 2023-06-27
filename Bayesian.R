@@ -58,8 +58,7 @@ for (strainName in unique_strains) { #For each strain:
   
   # Predict and visualize the fit
   pred_data <- add_predicted_draws(current_strain_data, fit)
-  pred_data$Time <- as.POSIXct(pred_data$Time, origin = "1970-01-01")
-  
+
   strainGraph <- ggplot(pred_data, aes(x = Time)) +
     geom_ribbon(aes(ymin = .lower, ymax = .upper, fill = condition), alpha = 0.6) +
     geom_line(aes(y = .prediction, color = condition), size = 1.1) +
