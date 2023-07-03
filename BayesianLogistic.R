@@ -14,10 +14,10 @@ options(brms.backend = "cmdstanr")
 
 variables <- read.csv("Data/20181214_meta_trmB_all.csv") #Data about the conditions of each run
 
-data <- read.csv("Data/allDataCompatible.csv") #Data about the OD of each run
+data <- read.csv("Data/20181214_trmB_all_data.csv") #Data about the OD of each run
 
 # Convert the "Time" a duration object, because values go beyond 24 hours 
-data$Time <- as.numeric(hms(data$Time))
+#data$Time <- as.numeric(hms(data$Time))
 
 
 
@@ -55,7 +55,7 @@ for (strainName in unique_strains) { #For each strain:
                        set_prior("normal(0,10)", nlpar = "B"), 
                        set_prior("normal(0,10)", nlpar = "xmid"), 
                        set_prior("normal(0,10)", nlpar = "scal")),
-             chains = 2, cores = 2, control = list(max_treedepth = 15))
+             chains = 10, cores = 2, control = list(max_treedepth = 15))
   
   # save model for later use or inspection
   saveRDS(fit, paste0("Models/", strainName, ".rds"))
@@ -66,16 +66,15 @@ for (strainName in unique_strains) { #For each strain:
   
   # Compute .lower and .upper columns (e.g., for a 90% prediction interval)
   pred_summary <- pred_data %>%
-    group_by(condition, .draw, Time, biorep, techrep) %>%  # add biorep and techrep to group_by
-    summarize(qi = list(median_qi(.prediction, prob = 0.9)), .groups = "drop")  %>%  # change the prob as per your requirement
-    mutate(qi.lower = map_dbl(qi, ~quantile(.x, prob = 0.05)), # Compute 5th percentile
-           qi.upper = map_dbl(qi, ~quantile(.x, prob = 0.95))) %>% # Compute 95th percentile
-    select(-qi)
-  
+    group_by(condition, .draw, Time, biorep, techrep, OD) %>%  # include 'OD' in group_by
+    summarise(
+      across(.prediction, list(median = median, lower = ~quantile(., prob = 0.05), upper = ~quantile(., prob = 0.95)), .names = "{.col}.{.fn}")
+    ) %>%
+    ungroup()
   
   strainGraph <- ggplot(pred_summary, aes(x = Time)) +
-    geom_ribbon(aes(ymin = qi.lower, ymax = qi.upper, fill = condition), alpha = 0.6) +
-    geom_line(aes(y = .prediction, color = condition), size = 1.1) +
+    geom_ribbon(aes(ymin = .prediction.lower, ymax = .prediction.upper, fill = condition), alpha = 0.6) +
+    geom_line(aes(y = .prediction.median, color = condition), linewidth = 1.1) +  # change 'size' to 'linewidth'
     geom_point(aes(y = OD), size = 0.2, color = "black") +
     labs(x = "Time (Seconds)", y = "Optical Density", title = paste("Time series plot for strain: ",strainName,sep="")) + 
     theme_bw() +
