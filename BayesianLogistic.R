@@ -32,6 +32,7 @@ data_long <- data %>%
 data_long$Run <- as.numeric(data_long$Run)
 merged_data <- merge(data_long, variables[c("variable", "strain", "condition","techrep","biorep")], by.x = "Run", by.y = "variable", all.x = TRUE)
 
+glu01_data <- merged_data %>% filter(condition == "glu01")
 
 unique_strains <- unique(variables$strain)
 
@@ -40,7 +41,7 @@ for (strainName in unique_strains) { #For each strain:
   print(strainName)
   
   # Filter the merged_data for the current strain only
-  current_strain_data <- merged_data %>% filter(strain == strainName)
+  current_strain_data <- glu01_data %>% filter(strain == strainName)
   
   if(all(is.na(current_strain_data$biorep)) & all(is.na(current_strain_data$techrep))) { next }
   
