@@ -42,6 +42,11 @@ glu01_data <- glu01_data %>%
   filter(!(strain %in% c("blank", "")))
 
 
+set.seed(123)
+
+# Now, randomly select 70% of the data for training
+train_data <- glu01_data %>% sample_frac(.7)
+
   # Define the non-linear formula for brm
 f <- bf(
   OD ~ A + (B - A)/(1 + exp((log(Time) - xmid)/scal)), 
@@ -58,10 +63,10 @@ fit <- brm(f, data = glu01_data, family = gaussian(),
                      set_prior("normal(0,10)", nlpar = "B"), 
                      set_prior("normal(0,10)", nlpar = "xmid"), 
                      set_prior("normal(0,10)", nlpar = "scal")),
-           chains = 10, cores = 2, control = list(max_treedepth = 15))
+           chains = 5, cores = 2, control = list(max_treedepth = 15))
 
 # save model for later use or inspection
-saveRDS(fit, "Models/AllStrains.rds")
+saveRDS(fit, "Models/AllStrains70.rds")
 
 # Predict and visualize the fit
 pred_data <- add_predicted_draws(glu01_data, fit)
