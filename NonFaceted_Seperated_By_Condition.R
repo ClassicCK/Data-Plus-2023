@@ -76,8 +76,8 @@ for (i in strains){ #For each strain:
     
     #model <- lm(formula = linear, data = strain)
     #model <- glm(formula = exponential, data = strain)
-    #model <- nls(formula = logistic, data = strain, start = list(a = 1, b = 1, c = 1))
-    model <- nls(formula = gompertz, data = strain, start = list(a = 1, b = 1, c = 1))
+    model <- nls(formula = logistic, data = strain, start = list(a = 1, b = 1, c = 1))
+    #model <- nls(formula = gompertz, data = strain, start = list(a = 1, b = 1, c = 1))
     
     print(model)
     
@@ -90,7 +90,7 @@ for (i in strains){ #For each strain:
       geom_line(aes(y = Predicted), color = "blue") +
       stat_regline_equation(label.y = 1, aes(label = ..rr.label..)) +
       #facet_grid(rows = vars(biorep),cols=vars(techrep),switch='y',labeller = label_both) +
-      labs(x = "Time (Hours)", y = "Optical Density", title = paste("Time series plot for strain: ",strainNames[i], " with ", j, sep="")) + theme_twoseventyeight
+      labs(x = "Time (Hours)", y = "Optical Density", title = paste("Time series plot for strain: ",i, " with ", j, sep="")) + theme_twoseventyeight
     
     strain$y_pred <- predict(model)
     # Calculate the residuals
@@ -109,13 +109,13 @@ for (i in strains){ #For each strain:
     
     
     #Saves graph.
-    ggsave(filename = paste("Figures/",i," with ", j, ".png",sep=""),
+    ggsave(filename = paste("Figures_Logistic/",i," with ", j, ".png",sep=""),
            plot = strainGraph, units = "px", width = 3200, height = 1800, dpi = 300)
   }
 }
 r2 <- append(r2,0)
 r_squareds <- cbind(r_squareds,r2)
-colnames(r_squareds)[5] = "Gompertz"
+colnames(r_squareds)[5] = "Linear"
 
 
 

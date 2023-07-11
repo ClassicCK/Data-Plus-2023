@@ -51,16 +51,6 @@ logistic_equation <- function(time, state, parameters) {
 }
 
 
-r_squareds <- data.frame(c(0))
-
-k <- 1
-for (i in strains){
-  for(j in conditions){
-    r_squareds <- rbind(r_squareds,data.frame(c(0)))
-    rownames(r_squareds)[k] = paste(i," with ", j, sep="")
-    k <- k+1
-  }
-}
 
 r2 <- c()
 for (i in strains){ #For each strain:
@@ -86,7 +76,7 @@ for (i in strains){ #For each strain:
       strain$Time <- as.integer(strain$Time)/(60*60) #Convert to Hours
       #Convert to Hours
       
-      ssq=function(parms){
+      ssq = function(parms){
       
         initial <- c(strain$OD[1])
         t <- seq(min(strain$Time), max(strain$Time))
@@ -117,7 +107,6 @@ for (i in strains){ #For each strain:
       # fitting
       fitval <- nls.lm(par=parms,fn=ssq)
       summary(fitval)
-    
     
     
     } 
