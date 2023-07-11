@@ -1,0 +1,7 @@
+Label,Info,variable,strain,name,media,condition,techrep,biorep
+,,Blank,,,,,,
+,,1,blank,blank,HvCa+ura50,glu01,,
+,,2,blank,blank,HvCa+ura50,,,
+,,3,HV287,_trmB+p,HvCa+ura50+nov10,glu01,1,3
+,,4,HV187,trmB-HA,HvCa+ura50,glu01,1,3
+,,5,HV187,trmB-HA,HvCa+ura50,glu01,1,1
