@@ -64,7 +64,7 @@ f <- bf(
   xmid ~ 1 + (1|biorep) + (1|techrep) + (1|strain), 
   scal ~ 1 + (1|biorep) + (1|techrep) + (1|strain), 
   nl = TRUE
-)
+) 
 
 # Fit the Bayesian non-linear model
 fit <- brm(f, data = train_data, family = gaussian(),
