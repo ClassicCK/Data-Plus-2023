@@ -38,17 +38,6 @@ conditions <- list("no glu01","glu01")
 models <- list("Linear","Exponential","Logistic","Gompertz","Richards","Stannard")
 
 #Defines equations of fit
-logistic_equation <- function(time, state, parameters) {
-
-    r = parameters$r
-    K = parameters$K
-    
-    # Define the differential equation
-    dOD <- r * state * (1 - state / K)
-    
-    # Return the derivative
-    return(list(dOD))
-}
 
 
 
@@ -76,30 +65,39 @@ for (i in strains){ #For each strain:
       strain$Time <- as.integer(strain$Time)/(60*60) #Convert to Hours
       #Convert to Hours
       
-      ssq = function(parms){
-      
+      ssq <- function(parms) {
         initial <- c(strain$OD[1])
         t <- seq(min(strain$Time), max(strain$Time))
         
-        parms <- list(r=0.01,K=1)
-        out <- ode(y=initial,times=t,func=logistic_equation,parms=parms)
-        plot(out)
+        ode_equation <- function(time, state, parameters) {
+          r <- parameters["r"]
+          K <- parameters["K"]
+          
+          # Define the differential equation
+          dOD <- r * state * (1 - state / K)
+          
+          # Return the derivative
+          return(list(dOD))
+        }
         
-        outdf=data.frame(out)
-        outdf=outdf[outdf$time %in% strain$Time,]
-        # Evaluate predicted vs experimental residual
-        preddf=melt(outdf,id.var="time",variable.name="Run",value.name="OD")
-        expdf=melt(strain,id.var="Time",variable.name="Run",value.name="OD")
+        parms <- c(r = parms[1], K = parms[2])
+        out <- lsoda(y = initial, times = t, func = ode_equation, parms = parms)
         
-        preddf <- preddf[complete.cases(preddf), ]  # Remove rows with NAs
-        expdf <- expdf[complete.cases(expdf), ]
+        # Check if out contains any missing or NaN values
+        if (any(is.na(out)) || any(is.nan(out))) {
+          ssqres <- rep(1e6, length(strain$OD))  # Return a large sum of squared residuals
+        } else {
+          # Extract full predicted values
+          pred_OD <- out[, -1]
+          pred_times <- out[, 1]
+          
+          # Interpolate predicted values at the specific time points
+          interp_OD <- approx(pred_times, pred_OD, xout = strain$Time)$y
+          
+          # Calculate the sum of squared residuals
+          ssqres <- interp_OD - strain$OD
+        }
         
-        preddf$OD <- as.numeric(preddf$OD)  # Convert OD column to numeric
-        expdf$OD <- as.numeric(expdf$OD)  # Convert OD column to numeric
-        
-        
-        ssqres=preddf$OD-expdf$OD
-        # return predicted vs experimental residual
         return(ssqres)
       }
       
