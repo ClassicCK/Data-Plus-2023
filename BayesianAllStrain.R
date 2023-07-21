@@ -42,10 +42,19 @@ glu01_data <- glu01_data %>%
   filter(!(strain %in% c("blank", "")))
 
 
-set.seed(123)
 
 # Now, randomly select 70% of the data for training
-train_data <- glu01_data %>% sample_frac(.7)
+unique_runs <- unique(glu01_data$Run)
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Randomly select 70% of the unique runs
+train_runs <- sample(unique_runs, size = floor(0.7 * length(unique_runs)))
+
+# Subset the glu01_data to only include the selected runs
+train_data <- glu01_data %>% filter(Run %in% train_runs)
+
 
   # Define the non-linear formula for brm
 f <- bf(
@@ -55,10 +64,10 @@ f <- bf(
   xmid ~ 1 + (1|biorep) + (1|techrep) + (1|strain), 
   scal ~ 1 + (1|biorep) + (1|techrep) + (1|strain), 
   nl = TRUE
-)
+) 
 
 # Fit the Bayesian non-linear model
-fit <- brm(f, data = glu01_data, family = gaussian(),
+fit <- brm(f, data = train_data, family = gaussian(),
            prior = c(set_prior("normal(0,10)", nlpar = "A"), 
                      set_prior("normal(0,10)", nlpar = "B"), 
                      set_prior("normal(0,10)", nlpar = "xmid"), 

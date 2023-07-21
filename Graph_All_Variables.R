@@ -69,9 +69,9 @@ for (i in 1:length(strains)){ #For each strain:
   
   
   #Makes a model based on the formulas above
-  #model <- lm(formula = linear, data = strain)
+  model <- lm(formula = linear, data = strain)
   #model <- glm(formula = exponential, data = strain)
-  model <- nls(formula = logistic, data = strain, start = list(a = 1, b = 1, c = 1))
+  #model <- nls(formula = logistic, data = strain, start = list(a = 1, b = 1, c = 1))
   #model <- nls(formula = gompertz, data = strain, start = list(a = 1, b = 1, c = 1))
   
   print(model)
@@ -86,7 +86,9 @@ for (i in 1:length(strains)){ #For each strain:
     
     geom_line(aes(y = Predicted), color = "blue") +
     
-    #facet_grid(rows = vars(biorep),cols=vars(techrep),switch='y',labeller = label_both) +
+    stat_regline_equation(label.y = 1, aes(label = ..rr.label..)) +
+    
+    facet_grid(rows = vars(biorep),cols=vars(techrep),switch='y',labeller = label_both) +
     labs(x = "Time (Hours)", y = "Optical Density", title = paste("Time series plot for strain: ",strainNames[i],sep="")) + theme_twoseventyeight
   
   
@@ -96,7 +98,7 @@ for (i in 1:length(strains)){ #For each strain:
   print(r_squared)
   
   #Saves graph.
-  ggsave(filename = paste("Figures_Logistic/",strainNames[i],".png",sep=""),
+  ggsave(filename = paste("Figures/",strainNames[i],".png",sep=""),
          plot = strainGraph, units = "px", width = 3200, height = 1800, dpi = 300)
   
 }
