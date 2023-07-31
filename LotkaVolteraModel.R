@@ -56,9 +56,9 @@ model <- function (pars, N_0 = 10, M_0 = 14231) {
 }
 
 cost_nm_model <- function (pars) {
-  out <- LV_model(pars)
-  cost <- modCost(model = out, obs = data, err = "sd")
-  return(modCost(model = out, obs = trait.data, err = "sd", cost = cost))
+  out <- model(pars)
+  cost <- modCost(model = out, obs = data, x = "time", err = "sd")
+  return(modCost(model = out, obs = trait.data, x = "time", err = "sd", cost = cost))
 }
 
 costmodel<- function(Npars){cost_nm_model(c(Npars, a=1.23*10^-4,b=8.22e+06))} # These are just random beginning set parameters for a and b, can caluclate by solving for intrinsic growth rate
@@ -71,16 +71,18 @@ lower_bounds <- c(m = 0)
 # Control
 data <- dataLong %>%
   filter() %>% # determine what you may filter by
-  group_by() %>% # determine what you want to group by
+  group_by(Time) %>% # determine what you want to group by
   summarize(Density = mean(OD, na.rm = TRUE), SD = sd(OD, na.rm=TRUE)) # Set the correct column here for density
 
 trait.data <- data %>%
   filter() %>% # determine what you may filter by
-  group_by() %>% # determine what you want to group by
+  group_by(Time) %>% # determine what you want to group by
   summarize(Size = mean(Volume, na.rm = TRUE), CV = sd(Volume, na.rm=TRUE)/mean(Volume, na.rm = TRUE), SD = sd(Volume, na.rm=TRUE), MIN=min(Volume, na.rm=TRUE)) # Will need to create a volume category in your data
 
-data <- cbind(time = data$Day, N = data$Density, sd = rep(0.45, length(trait.data$SD)))
-trait.data <- cbind(time = trait.data$Day, M = trait.data$Size, sd = rep(0.45, length(trait.data$SD)))
+data <- cbind(time = data$Time, N = data$Density, sd = rep(0.45, length(trait.data$SD)))
+trait.data <- cbind(time = trait.data$Time, M = trait.data$Size, sd = rep(0.45, length(trait.data$SD)))
+
+
 
 pars <- c(e = 24, omega = 0.937, c = 0.9, delta = 1.1, sigma = 0, h = 1, beta = -0.70281446, m = 1) # set initial parameters
 fit <- modFit(f = costmodel, p = pars, method = "Port")#, upper = upper_bounds)#, lower = lower_bounds) # May or may not need to include bounds
